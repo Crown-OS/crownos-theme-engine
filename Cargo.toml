@@ -1,0 +1,19 @@
+[package]
+name = "crownos-theme-engine"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+description = "Keeps third-party app configs in step with the CrownOS appearance settings."
+
+[dependencies]
+anyhow = "1"
+crownos-config = { path = "../crownos-config", default-features = false }
+dirs = "6"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+toml_edit = "0.25"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

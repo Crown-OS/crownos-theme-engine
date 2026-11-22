@@ -1,0 +1,64 @@
+headerbar.header-bar.titlebar,
+headerbar.header-bar.titlebar:backdrop {
+  background: {{background_alt}};
+  color: {{foreground}};
+}
+headerbar.header-bar button.titlebutton {
+  min-width: 16px;
+  min-height: 16px;
+  margin: 0 2px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  box-shadow: none;
+  background: alpha({{foreground}}, 0.16);
+  color: alpha({{foreground}}, 0.82);
+}
+headerbar.header-bar button.titlebutton:hover {
+  background: alpha({{foreground}}, 0.22);
+}
+headerbar.header-bar button.titlebutton:active {
+  background: alpha({{foreground}}, 0.28);
+}
+headerbar.header-bar button.titlebutton:backdrop {
+  background: alpha({{foreground}}, 0.10);
+  color: alpha({{foreground}}, 0.50);
+}
+window.background {
+  background-color: {{background}};
+  color: {{foreground}};
+}
+window.background > textview.view,
+window.background > textview.view > text {
+  background: {{surface}};
+  color: {{foreground}};
+}
+window.background > textview.view > text > selection {
+  background-color: {{accent}};
+  color: {{on_accent}};
+}
+window.background:not(.popup) > menu {
+  background: {{overlay}};
+}
+window.background:not(.popup) > menu menuitem label {
+  color: alpha({{foreground}}, 0.85);
+}
+window.background:not(.popup) > menu menuitem accelerator {
+  color: alpha({{foreground}}, 0.55);
+}
+window.background:not(.popup) > menu menuitem:disabled label,
+window.background:not(.popup) > menu menuitem:disabled accelerator {
+  color: alpha({{foreground}}, 0.25);
+}
+window.background:not(.popup) > menu separator {
+  background: alpha({{foreground}}, 0.12);
+}
+window.background:not(.popup) > menu menuitem:hover {
+  border: 1px solid {{accent_alt}};
+  border-radius: 12px;
+  background: {{accent}};
+}
+window.background:not(.popup) > menu menuitem:hover label,
+window.background:not(.popup) > menu menuitem:hover accelerator {
+  color: {{on_accent}};
+}

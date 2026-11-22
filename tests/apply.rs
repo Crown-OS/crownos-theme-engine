@@ -89,7 +89,7 @@ fn every_builtin_target_writes_and_is_idempotent() {
     scratch.write("kitty/kitty.conf", "font_size 12\n");
     scratch.write(
         "gtk-3.0/settings.ini",
-        "[Settings]\ngtk-font-name=Inter 11\n",
+        "[Settings]\ngtk-font-name=Cantarell 11\ngtk-cursor-blink=false\n",
     );
     scratch.write(
         "yazi/theme.toml",
@@ -118,7 +118,11 @@ fn every_builtin_target_writes_and_is_idempotent() {
     );
 
     let gtk = scratch.read("gtk-3.0/settings.ini");
-    assert!(gtk.contains("gtk-font-name=Inter 11\n"));
+    assert!(gtk.contains("gtk-font-name=Inter 11\n") && !gtk.contains("Cantarell"));
+    assert!(
+        gtk.contains("gtk-cursor-blink=false\n"),
+        "unrelated user keys stay"
+    );
     assert!(gtk.contains("gtk-application-prefer-dark-theme=1\n"));
     assert!(gtk.contains("gtk-icon-theme-name=Papirus\n"));
     assert!(
@@ -168,7 +172,16 @@ fn switching_mode_rewrites_in_place() {
 
     let css = scratch.read("gtk-3.0/gtk.css");
     assert_eq!(css.matches(">>> crownos-theme-engine >>>").count(), 1);
+    assert_eq!(
+        css.matches(">>> crownos-theme-engine chrome >>>").count(),
+        1
+    );
     assert!(css.contains("@define-color window_bg_color #f3f3f3;"));
+    assert!(css.contains("window.background {\n  background-color: #f3f3f3;"));
+    assert!(
+        !css.contains("#0f0f10"),
+        "no dark color stays after the switch"
+    );
     assert!(
         scratch
             .read("gtk-4.0/settings.ini")

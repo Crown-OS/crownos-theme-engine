@@ -1,12 +1,12 @@
 //! A marked region the engine owns inside a file the user owns.
 //!
 //! The block is appended once and replaced in place afterwards, so every line
-//! outside the markers is left exactly as the user wrote it.
+//! outside the markers is left exactly as the user wrote it. Targets that share
+//! a file use named blocks, so each target replaces only its own block.
 
 use std::borrow::Cow;
 
-const BEGIN: &str = ">>> crownos-theme-engine >>>";
-const END: &str = "<<< crownos-theme-engine <<<";
+const OWNER: &str = "crownos-theme-engine";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Comment {
@@ -24,7 +24,16 @@ impl Comment {
 }
 
 pub fn upsert<'a>(text: &'a str, comment: Comment, body: &str) -> Cow<'a, str> {
-    let (begin, end) = (comment.marker(BEGIN), comment.marker(END));
+    upsert_labelled(text, comment, OWNER, body)
+}
+
+pub fn upsert_named<'a>(text: &'a str, comment: Comment, name: &str, body: &str) -> Cow<'a, str> {
+    upsert_labelled(text, comment, &format!("{OWNER} {name}"), body)
+}
+
+fn upsert_labelled<'a>(text: &'a str, comment: Comment, label: &str, body: &str) -> Cow<'a, str> {
+    let begin = comment.marker(&format!(">>> {label} >>>"));
+    let end = comment.marker(&format!("<<< {label} <<<"));
     let block = format!("{begin}\n{}\n{end}\n", body.trim_end());
     let existing = text.find(&begin).and_then(|start| {
         let marker_end = start + text[start..].find(&end)? + end.len();
@@ -74,6 +83,20 @@ mod tests {
                 .contains("include b.conf\n# <<< crownos-theme-engine <<<\nfont_family Iosevka\n")
         );
         assert!(!second.contains("a.conf"));
+    }
+
+    #[test]
+    fn named_blocks_replace_only_themselves() {
+        let shared = upsert("", Comment::Css, "@define-color a #000;");
+        let both = upsert_named(&shared, Comment::Css, "chrome", "window {}");
+        let updated = upsert_named(&both, Comment::Css, "chrome", "textview {}");
+        assert!(updated.contains("@define-color a #000;"));
+        assert!(updated.contains("/* >>> crownos-theme-engine chrome >>> */\ntextview {}\n"));
+        assert!(!updated.contains("window {}"));
+        assert!(matches!(
+            upsert(&updated, Comment::Css, "@define-color a #000;"),
+            Cow::Borrowed(_)
+        ));
     }
 
     #[test]

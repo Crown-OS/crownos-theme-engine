@@ -9,12 +9,16 @@ use crate::mode::Mode;
 use crate::palette::{Palette, accent_stops};
 use crate::util::template;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+/// The GNOME default UI text size, before the CrownOS font scale.
+const UI_FONT_POINTS: f32 = 11.0;
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Theme {
     pub mode: Mode,
     pub accent: AccentColor,
     pub palette: Palette,
     pub ui_font: String,
+    pub ui_font_points: f32,
     pub mono_font: String,
     pub icon_theme: Option<String>,
     pub cursor_theme: Option<String>,
@@ -72,6 +76,7 @@ impl Theme {
             accent: appearance.accent,
             palette,
             ui_font: overrides.font.family.clone(),
+            ui_font_points: (UI_FONT_POINTS * overrides.font.scale * 10.0).round() / 10.0,
             mono_font: overrides.font.mono.clone(),
             icon_theme: named(&appearance.icon_theme),
             cursor_theme: named(&appearance.cursor_theme),
@@ -80,6 +85,11 @@ impl Theme {
                 .as_ref()
                 .map(|pair| mode.pick(&pair.dark, &pair.light).clone()),
         }
+    }
+
+    /// The UI font as a Pango description, such as `Inter 11`.
+    pub fn ui_font_description(&self) -> String {
+        format!("{} {}", self.ui_font, self.ui_font_points)
     }
 
     /// The GNOME name of the accent, as `org.gnome.desktop.interface accent-color` spells it.
@@ -180,6 +190,21 @@ mod tests {
         let light = theme(&appearance, &overrides);
         assert_eq!(light.gtk_theme.as_deref(), Some("adw-gtk3"));
         assert_eq!(light.palette.background, Rgba::rgb(0xf3f3f3));
+    }
+
+    #[test]
+    fn ui_font_description_applies_the_scale() {
+        let mut overrides = ThemeOverrides::default();
+        let appearance = Appearance::default();
+        assert_eq!(
+            theme(&appearance, &overrides).ui_font_description(),
+            "Inter 11"
+        );
+        overrides.font.scale = 1.1;
+        assert_eq!(
+            theme(&appearance, &overrides).ui_font_description(),
+            "Inter 12.1"
+        );
     }
 
     #[test]

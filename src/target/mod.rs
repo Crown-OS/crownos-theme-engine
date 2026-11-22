@@ -4,6 +4,7 @@
 //! listing it in [`builtin`]. Apps that only need a rendered file can skip the
 //! code entirely and be declared as a [`TemplateTarget`] in `theme-engine.ron`.
 
+mod chrome;
 mod fish;
 mod gtk;
 mod icons;
@@ -14,6 +15,7 @@ mod spicetify;
 mod template;
 mod yazi;
 
+pub use chrome::Chrome;
 pub use fish::Fish;
 pub use gtk::Gtk;
 pub use icons::Icons;
@@ -54,5 +56,6 @@ pub fn builtin() -> Vec<Box<dyn Target>> {
         Box::new(Neovim),
         Box::new(Yazi),
         Box::new(Spicetify),
+        Box::new(Chrome),
     ]
 }

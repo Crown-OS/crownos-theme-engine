@@ -1,4 +1,4 @@
-//! GTK 3/4 and libadwaita: named colors, dark preference and theme name.
+//! GTK 3/4 and libadwaita: named colors, dark preference, UI font and theme name.
 
 use crate::environment::Environment;
 use crate::error::TargetError;
@@ -24,10 +24,14 @@ impl Target for Gtk {
             .gtk_theme
             .as_deref()
             .filter(|name| paths::is_gtk_theme_installed(name));
-        let mut settings = vec![(
-            "gtk-application-prefer-dark-theme",
-            theme.mode.pick("1", "0"),
-        )];
+        let font = theme.ui_font_description();
+        let mut settings = vec![
+            (
+                "gtk-application-prefer-dark-theme",
+                theme.mode.pick("1", "0"),
+            ),
+            ("gtk-font-name", font.as_str()),
+        ];
         settings.extend(gtk_theme.map(|name| ("gtk-theme-name", name)));
 
         for version in GTK_VERSIONS {
@@ -42,6 +46,7 @@ impl Target for Gtk {
 
         if environment.runs_commands() && gsettings::is_available() {
             gsettings::set("color-scheme", theme.mode.pick("prefer-dark", "default"))?;
+            gsettings::set("font-name", &font)?;
             if let Some(name) = gtk_theme {
                 gsettings::set("gtk-theme", name)?;
             }
